@@ -1,143 +1,159 @@
-python3.11 -m venv venv311
-source venv/bin/activate
-pip install --upgrade pip
-# reinstall your packages
+> Home assignment for **Senior Big Data Engineer – AI-Focused Data Infrastructure**
+
+RAG Pipeline
+RAG Pipeline is a Retrieval-Augmented Generation (RAG) project that scrapes book data, processes it through multiple ETL stages, generates embeddings for semantic search, and exposes a FastAPI-based API to query the knowledge base. The pipeline uses MinIO as object storage, Apache Airflow for orchestration, and ChromaDB for vector embeddings.
+
+Project Overview
+•	Scraper: Scrapes book data from https://books.toscrape.com website.
+•	ETL Pipeline:
+•	  - RAW: Raw text files from scraper.
+•	  - BRONZE: Cleaned Parquet files.
+•	  - SILVER: Enhanced Parquet files with word counts.
+•	  - GOLD: Embedded text chunks stored in ChromaDB vector store.
+•	Data Quality Checks: Runs automated data quality validations on SILVER data.
+•	FastAPI Service: Provides an API endpoint for querying the RAG knowledge base.
+•	Airflow: Orchestrates the pipeline DAG.
 
 
+Folder Structure
+rag_pipeline
+├── Dockerfile.airflow
+├── Dockerfile.api
+├── Makefile
+├── README.md
+├── airflow/
+│   ├── dags/
+│   │   └── rag_pipeline.py
+│   └── airflow.db
+├── architecture.png
+├── data/
+│   ├── bronze/
+│   ├── gold/
+│   ├── lineage/
+│   ├── raw/
+│   └── silver/
+├── docker-compose.yaml
+├── downloads/
+├── mydata/
+│   ├── metadata.json
+│   └── silver/
+├── rag_api.py
+├── src/
+│   ├── data/
+│   │   └── gold/
+│   ├── data_quality.py
+│   ├── etl.py
+│   ├── rag_utils.py
+│   └── scraper.py
+└── tests/
+    ├── conftest.py
+    └── test_scraper.py
+
+
+⚙️ Setup Instructions
+Prerequisites
+•	Docker and Docker Compose installed
+•	Python 3.11 (for local runs)
+•	MinIO credentials set in .env file
+
+Environment Variables
+Create a .env file with the following content (already included in your project):
+MINIO_URL=minio:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=mydata
+FERNET_KEY=l2ckboQEnybXHIMXgwprr_GSQUwkzyuqJ0R2ZFunTLY=
+SECRET_KEY=l2ckboQEnybXHIMXgwprr_GSQUwkzyuqJ0R2ZFunTLY=
+CHROMA_DIR=/opt/data/gold/chroma
+
+
+🐳 Running with Docker Compose
+Build and start all services (MinIO, API, Airflow):
+$ make docker-up
+
+Stop and remove all containers:
+$ make docker-down
+
+Start Airflow components:
+$ make airflow_up
+
+View Airflow scheduler and webserver logs:
+$ make airflow_logs
+
+Trigger the Airflow DAG manually:
+$ make airflow_dag_trigger
+
+Airflow UI will be available at http://localhost:8080
+FastAPI API will be available at http://localhost:8000
+MinIO Console UI available at http://localhost:9001 (login with your MinIO credentials)
+
+
+🧰 Running Locally (without Docker)
+Create a Python virtual environment and install dependencies:
+$ python3 -m venv env
+source env/bin/activate
 pip install -r requirements.txt
-
-
-# python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-
 
 ollama serve
 
-ollama run llama3
+Run scraper:
+$ make scrape
 
+Run full ETL pipeline:
+$ make etl
 
- curl -X POST http://localhost:8000/query/ \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is the main theme of Gannibal?"}
+Start FastAPI server:
+$ make api
 
-  uvicorn rag_api:app --reload --host 0.0.0.0 --port 8000; 
-  lsof -i :8000
-   kill -9 90653    
+Run tests:
+$ make test
 
+🧩 Makefile Commands
+Command	Description
+make scrape	Run scraper to collect raw book data
+make etl	Run full ETL pipeline (RAW → GOLD + DQ)
+make api	Start FastAPI server locally
+make docker-up	Build and start Docker containers
+make docker-down	Stop and remove Docker containers
+make airflow_up	Start Airflow webserver, scheduler, init
+make airflow_dag_trigger	Trigger Airflow DAG manually
+make airflow_logs	Tail Airflow scheduler and webserver logs
+make test	Run pytest tests
+make clean	Remove temporary files
+📄 API Usage
+Root
+GET /
+Returns welcome message.
+Query Endpoint
+POST /query/
+Content-Type: application/json
 
-
-
-
-
-
-📘 README.md
-# 🧠 RAG Pipeline – AI-Focused Data Infrastructure
-
-This project is a modular Retrieval-Augmented Generation (RAG) pipeline that scrapes data, processes it through an ETL workflow, embeds it using Sentence Transformers, stores vectors in ChromaDB, and exposes the system via a FastAPI for querying.
-
-## 🏗️ Project Structure
-
-├── airflow/ # Apache Airflow DAGs and configs
-│ └── dags/ # Airflow workflows (Python DAG files)
-├── data/ # Data folders used locally (also mirrored on MinIO)
-│ ├── raw/ # Raw scraped HTML/text
-│ ├── bronze/ # Cleaned & parsed data
-│ ├── silver/ # Enriched & structured data
-│ └── gold/ # Embedded vector store (ChromaDB)
-├── docker/ # Docker-related config
-├── etl/ # ETL scripts for scraping, cleaning, embedding
-├── api/ # FastAPI code for querying vector DB
-├── Makefile # CLI automation for running pipeline stages
-├── requirements.txt # Python dependencies
-└── README.md # Project documentation
-
-
----
-
-## ⚙️ How It Works
-
-### 1. Scrape
-Use BeautifulSoup to extract data (e.g., from Project Gutenberg) and store in `raw/`.
-
-### 2. ETL
-Transform data from raw → bronze → silver stages. Each stage improves structure and enriches metadata.
-
-### 3. Embedding
-Use `sentence-transformers` to embed cleaned text into vector space.
-
-### 4. Vector DB
-Store embeddings in ChromaDB with metadata for similarity search.
-
-### 5. Query API
-FastAPI lets you query the Chroma vector DB with natural language.
-
----
-
-## 🚀 Quickstart
-
-### Prerequisites
-
-- Python 3.11+
-- Docker & Docker Compose
-- `make`
-
-### Setup
-
-```bash
-# Clone repository
-git clone https://github.com/your-user/rag-pipeline.git
-cd rag-pipeline
-
-# Create virtual environment and install deps
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Start MinIO, Airflow, etc.
-make docker-up
-
-# Run full pipeline
-make etl
-
-# Start API server
-make api
-🛠️ Makefile Commands
-
-make scrape        # Run the scraper script
-make etl           # Run the full ETL pipeline (raw → bronze → silver → gold)
-make embed         # Run only the embedding step
-make api           # Launch FastAPI server
-make docker-up     # Start all services (MinIO, Airflow)
-make docker-down   # Tear down all containers
-make airflow_up    # Start Airflow webserver and scheduler
-make airflow_dag_trigger DAG=my_dag_name
-make clean         # Cleanup data folders
-🌐 API Endpoint (via FastAPI)
-
-POST /query
 {
-  "query": "What is the main theme of Pride and Prejudice?"
+  "query": "Your question here"
 }
-Returns: Top similar documents from the ChromaDB vector store.
 
-📦 Dependencies
+Response:
+{
+  "question": "Your question here",
+  "answer": "Generated answer from RAG",
+  "context": "Context documents used"
+}
 
-See requirements.txt for full list. Key packages:
 
-requests, bs4 – Web scraping
-sentence-transformers – Embedding
-chromadb – Vector DB
-fastapi, uvicorn – API server
-minio – S3-compatible object storage
-airflow – Workflow orchestration
-📂 Data Flow Summary
+🛠️ Project Components
+•	Scraper (src/scraper.py): Scrapes book info from the web and uploads raw text to MinIO.
+•	ETL Pipeline (src/etl.py): Processes data through RAW → BRONZE → SILVER → GOLD stages.
+•	Data Quality Checks (src/data_quality.py): Performs checks like nulls, duplicates, empty strings.
+•	Vector DB: Uses ChromaDB to store sentence embeddings for fast retrieval.
+•	API (rag_api.py): FastAPI app serving RAG answers with local vector DB and Ollama LLM.
+•	Airflow DAG (airflow/dags/rag_pipeline.py): Orchestrates scraping and ETL tasks.
 
-Scrape → raw/
-      → ETL → bronze/
-               → silver/
-               → gold/ (ChromaDB)
-                        ↑
-                     FastAPI
+
+🖼️ Architecture Diagram
+Refer to architecture.png in the project root folder.
+
+Feel free to open issues or pull requests for improvements or bug fixes.
+
 👨‍💻 Author
-
 Sabrin Lal Singh
-2025, Kathmandu, Nepal
+sabrinlalsingh@gmail.com
