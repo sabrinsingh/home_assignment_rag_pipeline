@@ -16,8 +16,11 @@ scrape:
 etl:
 	python src/etl.py
 
-pytest -v tests/test_scraper.py
-PYTHONPATH=src pytest tests 
+test-scraper:
+	pytest -v tests/test_scraper.py
+
+# PYTHONPATH=src pytest tests 
+
 # Run both scrape and etl sequentially
 run_all: scrape etl
 

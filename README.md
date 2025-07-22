@@ -1,21 +1,35 @@
-> Home assignment for **Senior Big Data Engineer – AI-Focused Data Infrastructure**
+# 🧠 RAG Pipeline – Home Assignment  
+**Senior Big Data Engineer – AI-Focused Data Infrastructure**
 
-RAG Pipeline
-RAG Pipeline is a Retrieval-Augmented Generation (RAG) project that scrapes book data, processes it through multiple ETL stages, generates embeddings for semantic search, and exposes a FastAPI-based API to query the knowledge base. The pipeline uses MinIO as object storage, Apache Airflow for orchestration, and ChromaDB for vector embeddings.
+## 📌 Overview
 
-Project Overview
-•	Scraper: Scrapes book data from https://books.toscrape.com website.
-•	ETL Pipeline:
-•	  - RAW: Raw text files from scraper.
-•	  - BRONZE: Cleaned Parquet files.
-•	  - SILVER: Enhanced Parquet files with word counts.
-•	  - GOLD: Embedded text chunks stored in ChromaDB vector store.
-•	Data Quality Checks: Runs automated data quality validations on SILVER data.
-•	FastAPI Service: Provides an API endpoint for querying the RAG knowledge base.
-•	Airflow: Orchestrates the pipeline DAG.
+**RAG Pipeline** is a Retrieval-Augmented Generation (RAG) system that scrapes book data, processes it through multiple ETL stages, generates semantic embeddings, and exposes a FastAPI-based API for querying the knowledge base.  
+It utilizes:
 
+- **MinIO** as object storage  
+- **Apache Airflow** for orchestration  
+- **ChromaDB** as a vector database  
 
-Folder Structure
+---
+
+## 🚀 Project Workflow
+
+### Components:
+- **Scraper:** Scrapes book data from [Books to Scrape](https://books.toscrape.com)
+- **ETL Pipeline:**
+  - `RAW:` Raw scraped text files
+  - `BRONZE:` Cleaned Parquet files
+  - `SILVER:` Enhanced Parquet files with word count
+  - `GOLD:` Embedded text chunks stored in ChromaDB
+- **Data Quality Checks:** Runs automated validations on SILVER data
+- **FastAPI Service:** Exposes endpoints to query the RAG system
+- **Airflow DAG:** Automates the entire pipeline
+
+---
+
+## 📂 Folder Structure
+
+```
 rag_pipeline
 ├── Dockerfile.airflow
 ├── Dockerfile.api
@@ -48,116 +62,152 @@ rag_pipeline
 └── tests/
     ├── conftest.py
     └── test_scraper.py
+```
 
+---
 
-⚙️ Setup Instructions
-Prerequisites
-•	Docker and Docker Compose installed
-•	Python 3.11 (for local runs)
-•	MinIO credentials set in .env file
+## ⚙️ Setup Instructions
 
-Environment Variables
-Create a .env file with the following content (already included in your project):
+### ✅ Prerequisites
+- Docker & Docker Compose
+- Python 3.11 (for local development)
+- `.env` file with MinIO and app credentials
+
+### 🌍 Environment Variables
+
+```dotenv
 MINIO_URL=minio:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
+MINIO_ACCESS_KEY=user_name
+MINIO_SECRET_KEY=password123
 MINIO_BUCKET=mydata
 FERNET_KEY=l2ckboQEnybXHIMXgwprr_GSQUwkzyuqJ0R2ZFunTLY=
 SECRET_KEY=l2ckboQEnybXHIMXgwprr_GSQUwkzyuqJ0R2ZFunTLY=
 CHROMA_DIR=/opt/data/gold/chroma
+```
 
+---
 
-🐳 Running with Docker Compose
-Build and start all services (MinIO, API, Airflow):
-$ make docker-up
+## 📥 Clone and Configure
 
-Stop and remove all containers:
-$ make docker-down
-
-Start Airflow components:
-$ make airflow_up
-
-View Airflow scheduler and webserver logs:
-$ make airflow_logs
-
-Trigger the Airflow DAG manually:
-$ make airflow_dag_trigger
-
-Airflow UI will be available at http://localhost:8080
-FastAPI API will be available at http://localhost:8000
-MinIO Console UI available at http://localhost:9001 (login with your MinIO credentials)
-
-
-🧰 Running Locally (without Docker)
-### 1. Clone and configure
 ```bash
 git clone https://github.com/sabrinsingh/home_assignment_rag_pipeline.git
 cd rag-pipeline
-Create a Python virtual environment and install dependencies:
-$ python3 -m venv env
-source env/bin/activate
+
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
 ollama serve
+```
 
-Run scraper:
-$ make scrape
+### 🐳 Start Docker-based System
 
-Run full ETL pipeline:
-$ make etl
+```bash
+make docker-up
+```
 
-Start FastAPI server:
-$ make api
+- Airflow UI: http://localhost:8080  
+- FastAPI: http://localhost:8000  
+- MinIO Console: http://localhost:9001
 
-Run tests:
-$ make test
+---
 
-🧩 Makefile Commands
-Command	Description
-make scrape	Run scraper to collect raw book data
-make etl	Run full ETL pipeline (RAW → GOLD + DQ)
-make api	Start FastAPI server locally
-make docker-up	Build and start Docker containers
-make docker-down	Stop and remove Docker containers
-make airflow_up	Start Airflow webserver, scheduler, init
-make airflow_dag_trigger	Trigger Airflow DAG manually
-make airflow_logs	Tail Airflow scheduler and webserver logs
-make test	Run pytest tests
-make clean	Remove temporary files
-📄 API Usage
-Root
-GET /
-Returns welcome message.
-Query Endpoint
-POST /query/
-Content-Type: application/json
+## 🧠 RAG Flow (via Airflow)
 
+Trigger the DAG from Airflow UI. It performs:
+
+1. Scraping book data → stores in MinIO `/raw`
+2. ETL transformation: RAW → BRONZE → SILVER → GOLD
+3. Data Quality checks on SILVER, uploads results to MinIO
+4. Lineage metadata written to MinIO
+5. ChromaDB populated with embedded documents
+6. FastAPI queries this semantic index via local Ollama LLM
+
+Example query:
+
+```json
+{
+  "query": "What is the most expensive book and give also the price?"
+}
+```
+
+---
+
+## 🐳 Docker Makefile Commands
+
+| Command                    | Description                                        |
+|----------------------------|----------------------------------------------------|
+| `make docker-up`           | Build & run all Docker services                    |
+| `make docker-down`         | Stop and remove all Docker containers              |
+| `make airflow_up`          | Start Airflow services                             |
+| `make airflow_logs`        | Tail logs of Airflow components                    |
+| `make airflow_dag_trigger` | Trigger DAG manually                               |
+
+---
+
+## 🖥️ Running Locally (without Docker)
+
+# Start API server
+make api
+
+# Run unit tests
+make test
+```
+
+---
+
+## 🧩 Project Components
+
+- **Scraper** (`src/scraper.py`)  
+  Scrapes book info from the site and stores raw data in MinIO
+
+- **ETL Pipeline** (`src/etl.py`)  
+  Runs RAW → BRONZE → SILVER → GOLD stages
+
+- **Data Quality Checker** (`src/data_quality.py`)  
+  Validates nulls, duplicates, empty values
+
+- **Vector DB**:  
+  Uses **ChromaDB** for fast retrieval using embeddings
+
+- **API** (`rag_api.py`)  
+  FastAPI app that serves RAG responses using Ollama
+
+- **Airflow DAG** (`airflow/dags/rag_pipeline.py`)  
+  Orchestrates scraping + ETL + DQ + lineage
+
+---
+
+## 📄 API Usage
+
+### GET `/`
+Returns a welcome message.
+
+### POST `/query/`
+```json
 {
   "query": "Your question here"
 }
+```
 
-Response:
+#### Response:
+```json
 {
   "question": "Your question here",
   "answer": "Generated answer from RAG",
   "context": "Context documents used"
 }
+```
 
+---
 
-🛠️ Project Components
-•	Scraper (src/scraper.py): Scrapes book info from the web and uploads raw text to MinIO.
-•	ETL Pipeline (src/etl.py): Processes data through RAW → BRONZE → SILVER → GOLD stages.
-•	Data Quality Checks (src/data_quality.py): Performs checks like nulls, duplicates, empty strings.
-•	Vector DB: Uses ChromaDB to store sentence embeddings for fast retrieval.
-•	API (rag_api.py): FastAPI app serving RAG answers with local vector DB and Ollama LLM.
-•	Airflow DAG (airflow/dags/rag_pipeline.py): Orchestrates scraping and ETL tasks.
+## 🖼️ Architecture Diagram
 
+See `architecture.png` in the project root folder.
 
-🖼️ Architecture Diagram
-Refer to architecture.png in the project root folder.
+---
 
-Feel free to open issues or pull requests for improvements or bug fixes.
+## 👨‍💻 Author
 
-👨‍💻 Author
-Sabrin Lal Singh
-sabrinlalsingh@gmail.com
+**Sabrin Lal Singh**  
+📧 [sabrinlalsingh@gmail.com](mailto:sabrinlalsingh@gmail.com)
