@@ -1,0 +1,15 @@
+FROM apache/airflow:2.9.1
+
+# Switch to root user temporarily to copy files and change permissions
+USER root
+
+COPY requirements.txt /tmp/
+
+# Install dependencies as airflow user (switch user for pip install)
+RUN chown airflow: /tmp/requirements.txt
+
+USER airflow
+
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+

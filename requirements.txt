@@ -1,0 +1,47 @@
+# requirements.txt
+
+requests
+beautifulsoup4
+
+# MinIO SDK
+minio
+
+# Data Processing
+pandas
+duckdb
+pyarrow  # Needed for Parquet
+
+# Sentence Embedding
+sentence-transformers
+
+# Vector DB
+chromadb
+
+# FastAPI + Web Server
+fastapi
+uvicorn[standard]
+
+# Testing
+pytest
+
+# Airflow - We'll install this later as a separate step
+apache-airflow
+psycopg2-binary  # Required for PostgreSQL metadata DB
+
+
+
+
+langchain_community
+langchain
+langchain_huggingface
+langchain_chroma
+langchain_ollama
+
+pandas 
+numpy
+
+
+
+
+
+
