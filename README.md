@@ -89,6 +89,10 @@ MinIO Console UI available at http://localhost:9001 (login with your MinIO crede
 
 
 🧰 Running Locally (without Docker)
+### 1. Clone and configure
+```bash
+git clone https://github.com/sabrinsingh/home_assignment_rag_pipeline.git
+cd rag-pipeline
 Create a Python virtual environment and install dependencies:
 $ python3 -m venv env
 source env/bin/activate
