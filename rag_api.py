@@ -18,7 +18,7 @@ try:
     collection = client.get_collection(name="rag_docs")
     # collection = chroma_client.get_or_create_collection(name="rag_docs")
     logger.info("🧠 Loading local language model...")
-    llm = OllamaLLM(model="llama2")
+    llm = OllamaLLM(model="phi3")
 except Exception as e:
     logger.error("❌ Failed to initialize models/vector store", exc_info=True)
     raise RuntimeError("Initialization failed. Check logs.") from e
